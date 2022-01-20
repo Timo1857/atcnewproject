@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Google\Service\CloudHealthcare\Message;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -122,7 +123,7 @@ public function resetEmail(Request $request)
 
         return back()->with('message', 'your password reset link has been sent to your mail');
     }
-}
+
 
 protected function socialPassword(Request $request)
 {
@@ -134,6 +135,9 @@ protected function socialPassword(Request $request)
         }
     } elseif ($request['accessToken'] !== null) {
         $fb = new \Facebook\Facebook([
-            'app_id' => '',
-            'app_secret' => '',
+            'app_id' => '252669133674869',
+            'app_secret' => '3d878b522d23a49ddd72fa7e0660f08d'
         ]);
+    }
+}
+}
