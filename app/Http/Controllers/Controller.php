@@ -124,3 +124,16 @@ public function resetEmail(Request $request)
     }
 }
 
+protected function socialPassword(Request $request)
+{
+    if ($request['tokenId'] !== null) {
+        $client = new \Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]); // Specify the CLIENT_ID of the app that accesses the backend
+        $payload = $client->verifyIdToken($request->tokenId);
+        if ($payload && $request->email == $payload['email']) {
+            return $payload;
+        }
+    } elseif ($request['accessToken'] !== null) {
+        $fb = new \Facebook\Facebook([
+            'app_id' => '',
+            'app_secret' => '',
+        ]);
