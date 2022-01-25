@@ -67,6 +67,7 @@ class Controller extends BaseController
 }
 
 
+
     public function forgotPassword(Request $request)
     {
 
