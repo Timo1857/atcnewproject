@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Google\Service\CloudHealthcare\Message;
+use laravel\sanctum\HasApiTokens;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
@@ -48,7 +49,6 @@ class Controller extends BaseController
             'message' => 'Signup Successful',
         ];
         return response($response, 200);
-
     }
 
 
@@ -58,13 +58,13 @@ class Controller extends BaseController
             'email' => 'required|email|exists:users',
             'password' => 'required|string|min:6'
         ]);
-        $user = User::where('email', $request['email'])->first();
-    {
-   if (!Hash::check($request->password, $user->password)) {
-        $response = ['message' => 'Invalid password'];
-        return response()->json($response, 401);}
-      else (print "login successful");   }
-}
+        $user = User::where('email', $request['email'])->first(); {
+            if (!Hash::check($request->password, $user->password)) {
+                $response = ['message' => 'Invalid password'];
+                return response()->json($response, 401);
+            } else (print "login successful");
+        }
+    }
 
 
 
@@ -91,14 +91,15 @@ class Controller extends BaseController
             'password' => 'required|string|min:5|confirmed',
         ]);
 
+        {$token = $request -> input('password_resets');}
+
         $updatePassword = DB::table('password_resets')
             ->where(['email' => $request->email, 'token' => $request->token])
             ->first();
-
+        $response = ['message' => 'invalid password'];
         if (!$updatePassword) {
-            return back()->withInput()->with('error', 'Invalid token!');
+            return response()->json($response, 401);
         }
-
         $user = User::where('email', $request->email)
             ->update(['password' => Hash::make($request->password)]);
 
@@ -114,9 +115,12 @@ class Controller extends BaseController
     }
 
 
-public function resetEmail(Request $request)
-    { $token = Str::random(20);
-        Mail::send("forgotPassword",['token' => $token, 'email'=>$request->email], function ($message) use ($request) {
+    public function resetEmail(Request $request)
+    {
+
+       { $token = Str::random(20);}
+
+        Mail::send("forgotPassword", ['token' => $token, 'email' => $request->email], function ($message) use ($request) {
             $message->to($request->email);
             $message->from(env('MAIL_FROM_ADDRESS'));
             $message->subject('Reset Password Notification');
@@ -126,19 +130,20 @@ public function resetEmail(Request $request)
     }
 
 
-protected function socialPassword(Request $request)
-{
-    if ($request['tokenId'] !== null) {
-        $client = new \Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]); // Specify the CLIENT_ID of the app that accesses the backend
-        $payload = $client->verifyIdToken($request->tokenId);
-        if ($payload && $request->email == $payload['email']) {
-            return $payload;
+    protected function socialPassword(Request $request)
+    {
+        if ($request['tokenId'] !== null) {
+            $client = new \Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]); // Specify the CLIENT_ID of the app that accesses the backend
+            $payload = $client->verifyIdToken($request->tokenId);
+            if ($payload && $request->email == $payload['email']) {
+                return $payload;
+            }
+        } elseif ($request['accessToken'] !== null) {
+            $fb = new \Facebook\Facebook([
+                'app_id' => '252669133674869',
+                'app_secret' => '3d878b522d23a49ddd72fa7e0660f08d'
+            ]);
         }
-    } elseif ($request['accessToken'] !== null) {
-        $fb = new \Facebook\Facebook([
-            'app_id' => '252669133674869',
-            'app_secret' => '3d878b522d23a49ddd72fa7e0660f08d'
-        ]);
     }
-}
+
 }
